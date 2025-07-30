@@ -36,7 +36,7 @@ export default async function CategoryVideosPage(props: Props) {
   const { data: { session } } = await supabase.auth.getSession();
   const userId = session?.user.id;
 
-  let progressMap: Record<string, { progress_seconds: number; is_completed: boolean }> = {};
+  const progressMap: Record<string, { progress_seconds: number; is_completed: boolean }> = {};
   if (userId && videos && videos.length > 0) {
     const videoIds = videos.map(v => v.id);
     const { data: progresses } = await supabase

@@ -1,6 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import VideoPlayer from "@/components/VideoPlayer";
-import VideoCard from "@/components/VideoCard";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -211,11 +210,9 @@ export default async function VideoDetailPage({ params }: Props) {
                   {recommendations.map((rec) => (
                     <div key={rec.id} className="flex space-x-3">
                       <div className="w-16 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                        <img 
-                          src={rec.thumbnail_url || "/file.svg"} 
-                          alt={rec.title}
-                          className="w-full h-full object-cover"
-                        />
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <span className="text-gray-500 text-xs">Thumbnail</span>
+                        </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">

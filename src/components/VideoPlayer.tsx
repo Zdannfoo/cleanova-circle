@@ -147,7 +147,6 @@ export default function VideoPlayer({ video, progress: initialProgress, category
   useEffect(() => {
     const videoEl = videoRef.current;
     if (!videoEl) return;
-    let interval: NodeJS.Timeout;
     
     const onTimeUpdate = () => {
       const currentTime = videoEl.currentTime;
@@ -242,7 +241,7 @@ export default function VideoPlayer({ video, progress: initialProgress, category
     videoEl.addEventListener("load", onLoad);
     
     // Save progress every 30 seconds as backup
-    interval = setInterval(() => {
+    const interval = setInterval(() => {
       if (!videoEl.paused && !videoEl.ended) {
         upsertProgress(videoEl.currentTime, isCompleted);
       }
@@ -260,7 +259,7 @@ export default function VideoPlayer({ video, progress: initialProgress, category
       videoEl.removeEventListener("load", onLoad);
       clearInterval(interval);
     };
-  }, [isCompleted, video.id, lastSavedProgress]);
+  }, [isCompleted, video.id, lastSavedProgress, upsertProgress]);
 
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
