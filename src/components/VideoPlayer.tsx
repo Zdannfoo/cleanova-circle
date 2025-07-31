@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
@@ -51,59 +51,38 @@ export default function VideoPlayer({ video, progress: initialProgress, category
   }, [video.id, initialProgress?.progress_seconds]);
 
   // Upsert progress
-  const upsertProgress = async (currentTime: number, completed: boolean = false) => {
+  const upsertProgress = useCallback(async (currentTime: number, completed: boolean = false) => {
     try {
-      // Validate input data
       if (!video.id || typeof currentTime !== 'number' || currentTime < 0) {
         console.error("Invalid input data for progress save:", { videoId: video.id, currentTime });
         return;
       }
-
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
       if (userError) {
         console.error("Error getting user:", userError);
         return;
       }
-      
       if (!user) {
         console.log("No user found, skipping progress save");
         return;
       }
-      
-      console.log("Saving progress:", { 
-        currentTime, 
-        completed, 
-        videoId: video.id,
-        userId: user.id 
-      });
-      
       const progressData = {
         user_id: user.id,
         video_id: video.id,
         progress_seconds: Math.floor(currentTime),
         is_completed: completed,
       };
-      
-      console.log("Progress data to save:", progressData);
-      
-      // Check if record exists first
       const { data: existingRecord, error: checkError } = await supabase
         .from("user_video_progress")
         .select("id")
         .eq("user_id", user.id)
         .eq("video_id", video.id)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid error if no record
-      
+        .maybeSingle();
       if (checkError) {
         console.error("Error checking existing record:", checkError.message);
-        // If table doesn't exist or permission denied, just log and continue
-        console.log("Skipping progress save due to database error");
         return;
       }
-      
       if (existingRecord) {
-        // Update existing record
         const { error: updateError } = await supabase
           .from("user_video_progress")
           .update({
@@ -112,36 +91,25 @@ export default function VideoPlayer({ video, progress: initialProgress, category
           })
           .eq("user_id", user.id)
           .eq("video_id", video.id);
-        
         if (updateError) {
           console.error("Update failed:", updateError.message);
-          console.error("Full error object:", updateError);
         } else {
-          console.log("Progress updated successfully");
           setLastSavedProgress(currentTime);
         }
       } else {
-        // Insert new record
         const { error: insertError } = await supabase
           .from("user_video_progress")
           .insert(progressData);
-        
         if (insertError) {
           console.error("Insert failed:", insertError.message);
-          console.error("Full error object:", insertError);
         } else {
-          console.log("Progress inserted successfully");
           setLastSavedProgress(currentTime);
         }
       }
     } catch (err) {
       console.error("Exception saving progress:", err);
-      if (err instanceof Error) {
-        console.error("Error message:", err.message);
-        console.error("Error stack:", err.stack);
-      }
     }
-  };
+  }, [supabase, video.id, setLastSavedProgress]);
 
   // Handle time update
   useEffect(() => {

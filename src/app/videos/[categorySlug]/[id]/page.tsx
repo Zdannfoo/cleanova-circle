@@ -5,7 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 
 interface Props {
-  params: { categorySlug: string; id: string };
+  params: {
+    categorySlug: string;
+    id: string;
+  };
 }
 
 export default async function VideoDetailPage({ params }: Props) {
